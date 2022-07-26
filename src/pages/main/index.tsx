@@ -1,8 +1,7 @@
-import { Link } from "react-router-dom"
 import { useEffect, useState } from "react";
 import { Container, ModalContainer } from "./style";
-import checkImg from "../../../assets/check.svg";
-import closeImg from "../../../assets/close.svg";
+import checkImg from "../../assets/check.svg";
+import closeImg from "../../assets/close.svg";
 import { VscNotebook, VscSearch } from "react-icons/vsc";
 import Modal from "react-modal";
 import Select from "react-select";
@@ -25,16 +24,15 @@ export function NotesApp() {
     { value: "To Do", label: "To Do" },
     { value: "Doing", label: "Doing" },
     { value: "Done", label: "Done" },
-  ];  
-
+  ];
   const [note, setNote] = useState<Note[]>(() => {
     const localData = localStorage.getItem('notes');
     return localData ? JSON.parse(localData) : []
   });
   const [noteTitle, setNoteTitle] = useState("");
   const [noteStatus, setNoteStatus] = useState<Status>();
-
   const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("")
 
   useEffect(() => {
     localStorage.setItem('notes', JSON.stringify(note))
@@ -108,9 +106,6 @@ export function NotesApp() {
               <img src={checkImg} alt="check" className="check-img" />
               <h1>NotesList</h1>
             </div>
-            <Link to="/">
-              <h2>Back</h2>
-            </Link>
           </div>
           <div className="header-content--explain">
             <p>
@@ -131,8 +126,8 @@ export function NotesApp() {
               </button>
             </div>
             <div className="search-notes">
-              <input type="text" placeholder="Type to search..." />
               <VscSearch className="icon" />
+              <input type="text" placeholder="Type the title to search..." value={search} onChange={(e) => setSearch(e.target.value)} />
             </div>
           </div>
         </div>
@@ -141,13 +136,20 @@ export function NotesApp() {
         <table>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Title</th>
               <th>Date Created</th>
               <th>Status</th>
             </tr>
           </thead>
           <tbody>
-            {note.map((n) => {
+            {note.filter((val) => {
+              if (search === "") {
+                return val
+              } else if (val.title.toLowerCase().includes(search.toLowerCase())) {
+                return val
+              }
+              return null
+            }).map((n) => {
               return (
                 <tr key={n.id}>
                   <td>{n.title}</td>
