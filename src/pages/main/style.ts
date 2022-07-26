@@ -112,6 +112,7 @@ export const Container = styled.div`
         margin: 0 auto;
 
         table {
+            border-top: .15rem solid #ffffff;
             width: 100%;
             border-spacing: 0 0.5rem;
         }
