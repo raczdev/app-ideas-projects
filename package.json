@@ -1,6 +1,6 @@
 {
   "homepage": "https://raczdev.github.io/notes-app",
-  "name": "my-app",
+  "name": "notes-app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
