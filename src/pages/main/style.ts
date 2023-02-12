@@ -4,6 +4,7 @@ export const Container = styled.div`
 
     .icon {
         font-size: 1.5rem;
+        color: #363f5f;
     }
 
     .check-img {
@@ -136,7 +137,7 @@ export const Container = styled.div`
     }
 `;
 
-export const ModalContainer = styled.form`
+export const ModalNewNoteContainer = styled.form`
 
     display: flex;
     flex-direction: column;
@@ -174,4 +175,57 @@ export const ModalContainer = styled.form`
         margin-top: 1.5rem;
         padding: 0.3rem 1.5rem;
     }
+`;
+
+export const ModalEditContainer = styled.div`
+
+    display: flex;
+    flex-direction: column;
+
+    h2 {
+        margin-bottom: 1rem;
+    }
+
+    input {
+        width: 100%;
+
+        border: 1px solid #d7d7d7;
+        padding: .3rem .5rem;
+        border-radius: 0.25rem;
+        margin-bottom: 1rem;
+
+        font-size: 1rem;
+
+        ::placeholder {
+            font-size: 1rem;
+        }
+    }
+
+    button {
+
+        width: fit-content;
+        align-self: flex-end;
+        
+        background-color: #6933ff;
+        color: #fff;
+        border-radius: 0.25rem;
+        border: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        padding: 0.3rem 1.5rem;
+    }
+`;
+
+export const Tooltip = styled.div`
+    display: block;
+    position: absolute;
+    color: #fff;
+    background-color: #363f5f;
+    border-radius: .3rem;
+    padding: .45rem;
+    font-size: .75rem;
+
+    left: 50%;
+    z-index: 1;
 `;

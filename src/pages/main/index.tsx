@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Container, ModalContainer } from "./style";
+import { Container, ModalNewNoteContainer, ModalEditContainer, Tooltip } from "./style";
 import checkImg from "../../assets/check.svg";
 import closeImg from "../../assets/close.svg";
-import { VscNotebook, VscSearch } from "react-icons/vsc";
+import { VscNotebook, VscSearch, VscChromeClose, VscEdit } from "react-icons/vsc";
 import Modal from "react-modal";
 import Select from "react-select";
 
@@ -31,16 +31,37 @@ export function NotesApp() {
   });
   const [noteTitle, setNoteTitle] = useState("");
   const [noteStatus, setNoteStatus] = useState<Status>();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isNewNoteOpen, setIsNewNoteOpen] = useState(false);
+  const [isEditNoteOpen, setIsEditNoteOpen] = useState(false);
+  const [noteToEdit, setNoteToEdit] = useState<Note>({
+    id: 0,
+    title: '',
+    status: '',
+    createdAt: new Date(),
+  }) 
   const [search, setSearch] = useState("")
+  const [isDeleteHovered, setIsDeleteHovered] = useState(false)
+  const [isEditHovered, setIsEditHovered] = useState(false)
 
   useEffect(() => {
     localStorage.setItem('notes', JSON.stringify(note))
   }, [note])
 
+  const handleEditNote = (value: Note) => {
+    setNote(prevNotes => prevNotes.map(note => {
+      if (note.id === value.id) {
+        note.title = value.title
+        note.status = value.status.value
+      }
+      return note
+    }))
+
+    setIsEditNoteOpen(false)
+  }
+
   const handleCreateNewNote = (e: React.FormEvent) => {
     e.preventDefault();
-    if (noteTitle !== "") {
+    if (noteTitle !== "" && noteStatus !== undefined) {
       let randomId = Math.random();
       setNote((prev) => [
         ...prev,
@@ -52,15 +73,14 @@ export function NotesApp() {
         },
       ]);
     } else {
-      alert("insert a title");
+      alert("fill all the informations");
     }
     setNoteTitle("");
-    setIsOpen(false);
+    setIsNewNoteOpen(false);
   };
 
   const handleDeleteNote = (id: number) => {
     const filterNote = note.filter((n) => n.id !== id);
-
     setNote([...filterNote]);
   };
 
@@ -68,22 +88,31 @@ export function NotesApp() {
     setNoteStatus(value);
   };
 
+  const selectOnChangeEdit = (value: any) => {
+    setNoteToEdit({...noteToEdit, status: value})
+  }
+
+  const handleOpenEditNote = (note: Note) => {
+    setIsEditNoteOpen(true)
+    setNoteToEdit(note)
+  }
+
   return (
     <Container>
       <Modal
-        isOpen={isOpen}
-        onRequestClose={() => setIsOpen(false)}
+        isOpen={isNewNoteOpen}
+        onRequestClose={() => setIsNewNoteOpen(false)}
         overlayClassName="react-modal-overlay"
         className="react-modal-content"
       >
         <button
           type="button"
           className="react-modal-close"
-          onClick={() => setIsOpen(false)}
+          onClick={() => setIsNewNoteOpen(false)}
         >
           <img src={closeImg} alt="Fechar modal" />
         </button>
-        <ModalContainer onSubmit={handleCreateNewNote}>
+        <ModalNewNoteContainer onSubmit={handleCreateNewNote}>
           <h2>New Note</h2>
           <input
             type="text"
@@ -97,7 +126,32 @@ export function NotesApp() {
             onChange={selectOnChange}
           />
           <button type="submit">Submit</button>
-        </ModalContainer>
+        </ModalNewNoteContainer>
+      </Modal>
+      <Modal
+        isOpen={isEditNoteOpen}
+        onRequestClose={() => setIsEditNoteOpen(false)}
+        overlayClassName="react-modal-overlay"
+        className="react-modal-content"
+      >
+        <button
+          type="button"
+          className="react-modal-close"
+          onClick={() => setIsEditNoteOpen(false)}
+        >
+          <img src={closeImg} alt="Fechar modal" />
+        </button>
+        <ModalEditContainer>          
+          <h2>Edit Note</h2>
+          <input placeholder={noteToEdit.title} defaultValue={noteToEdit.title} onChange={(e) => setNoteToEdit({...noteToEdit, title: e.target.value})} type="text"/>            
+          <Select
+            options={options}
+            placeholder={noteToEdit.status}
+            value={noteToEdit.status}
+            onChange={selectOnChangeEdit}
+          />
+          <button type="button" onClick={() => handleEditNote(noteToEdit)}>Edit</button>          
+        </ModalEditContainer>
       </Modal>
       <header>
         <div className="header-content">
@@ -114,14 +168,14 @@ export function NotesApp() {
               Click <span className="new-text">+ New</span> to create a new note
               directly on this board.
               <br />
-              Click an existing note to edit or delete.
+              You can edit or delete an existing note.
             </p>
           </div>
           <div className="header-content--action">
             <div className="my-notes">
               <VscNotebook className="icon" />
               <h3>My notes</h3>
-              <button type="button" onClick={() => setIsOpen(true)}>
+              <button type="button" onClick={() => setIsNewNoteOpen(true)}>
                 + New
               </button>
             </div>
@@ -154,11 +208,35 @@ export function NotesApp() {
                 <tr key={n.id}>
                   <td>{n.title}</td>
                   <td>
-                    {new Intl.DateTimeFormat("en-US", {}).format(
+                    {new Intl.DateTimeFormat("pt-US", {}).format(
                       new Date(n.createdAt)
                     )}
                   </td>
                   <td>{n.status}</td>
+                  <td className="flex space-evenly">
+                    <span className="position-relative">
+                      <VscChromeClose 
+                        className="icon pointer" 
+                        onClick={() => handleDeleteNote(n.id)} 
+                        onMouseEnter={() => setIsDeleteHovered(true)} 
+                        onMouseLeave={() => setIsDeleteHovered(false)}
+                      />
+                      {isDeleteHovered && (
+                        <Tooltip>DELETE</Tooltip>
+                      )}
+                    </span>
+                    <span className="position-relative">
+                      <VscEdit 
+                        className="icon pointer" 
+                        onClick={() => handleOpenEditNote(n)} 
+                        onMouseEnter={() => setIsEditHovered(true)} 
+                        onMouseLeave={() => setIsEditHovered(false)} 
+                      />
+                      {isEditHovered && (
+                        <Tooltip>EDIT</Tooltip>
+                      )}
+                    </span>
+                  </td>
                 </tr>
               );
             })}

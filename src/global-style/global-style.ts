@@ -49,6 +49,21 @@ export const GlobalStyle = createGlobalStyle`
         color: inherit;
     }
 
+    .pointer {
+        cursor: pointer;
+    }
+
+    .flex {
+        display: flex;
+    }
+
+    .space-evenly {
+        justify-content: space-evenly;
+    }
+
+    .position-relative {
+        position: relative;
+    }
 
     .react-modal-overlay {
         background: rgba(0, 0, 0, 0.5);
