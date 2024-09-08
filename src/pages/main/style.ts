@@ -216,16 +216,3 @@ export const ModalEditContainer = styled.div`
         padding: 0.3rem 1.5rem;
     }
 `;
-
-export const Tooltip = styled.div`
-    display: block;
-    position: absolute;
-    color: #fff;
-    background-color: #363f5f;
-    border-radius: .3rem;
-    padding: .45rem;
-    font-size: .75rem;
-
-    left: 50%;
-    z-index: 1;
-`;

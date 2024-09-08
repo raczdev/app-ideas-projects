@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Container, ModalNewNoteContainer, ModalEditContainer, Tooltip } from "./style";
+import { Container, ModalNewNoteContainer, ModalEditContainer } from "./style";
 import checkImg from "../../assets/check.svg";
 import closeImg from "../../assets/close.svg";
 import { VscNotebook, VscSearch, VscChromeClose, VscEdit } from "react-icons/vsc";
@@ -40,8 +40,6 @@ export function NotesApp() {
     createdAt: new Date(),
   }) 
   const [search, setSearch] = useState("")
-  const [isDeleteHovered, setIsDeleteHovered] = useState(false)
-  const [isEditHovered, setIsEditHovered] = useState(false)
 
   useEffect(() => {
     localStorage.setItem('notes', JSON.stringify(note))
@@ -49,9 +47,11 @@ export function NotesApp() {
 
   const handleEditNote = (value: Note) => {
     setNote(prevNotes => prevNotes.map(note => {
-      if (note.id === value.id) {
+      if (note.id === value.id && noteToEdit.status !== undefined) {
         note.title = value.title
         note.status = value.status.value
+      } else {
+        console.log("teste")
       }
       return note
     }))
@@ -68,7 +68,7 @@ export function NotesApp() {
         {
           id: randomId,
           title: noteTitle,
-          status: noteStatus?.label,
+          status: noteStatus.label,
           createdAt: new Date(),
         },
       ]);
@@ -77,6 +77,7 @@ export function NotesApp() {
     }
     setNoteTitle("");
     setIsNewNoteOpen(false);
+    setNoteStatus(undefined);
   };
 
   const handleDeleteNote = (id: number) => {
@@ -214,27 +215,19 @@ export function NotesApp() {
                   </td>
                   <td>{n.status}</td>
                   <td className="flex space-evenly">
-                    <span className="position-relative">
-                      <VscChromeClose 
-                        className="icon pointer" 
-                        onClick={() => handleDeleteNote(n.id)} 
-                        onMouseEnter={() => setIsDeleteHovered(true)} 
-                        onMouseLeave={() => setIsDeleteHovered(false)}
-                      />
-                      {isDeleteHovered && (
-                        <Tooltip>DELETE</Tooltip>
-                      )}
-                    </span>
-                    <span className="position-relative">
+                    <span className="position-relative tooltip">
                       <VscEdit 
                         className="icon pointer" 
                         onClick={() => handleOpenEditNote(n)} 
-                        onMouseEnter={() => setIsEditHovered(true)} 
-                        onMouseLeave={() => setIsEditHovered(false)} 
                       />
-                      {isEditHovered && (
-                        <Tooltip>EDIT</Tooltip>
-                      )}
+                    <span className="tooltiptext">Edit</span>
+                    </span>
+                    <span className="position-relative tooltip">
+                      <VscChromeClose 
+                        className="icon pointer" 
+                        onClick={() => handleDeleteNote(n.id)}
+                      />
+                      <span className="tooltiptext">Delete</span>
                     </span>
                   </td>
                 </tr>
