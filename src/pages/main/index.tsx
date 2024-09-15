@@ -13,10 +13,11 @@ export function NotesApp() {
     value: string;
     label: string;
   }
+
   interface Note {
     id: number;
     title: string;
-    status: any;
+    status: Status;
     createdAt: Date;
   }
 
@@ -25,81 +26,88 @@ export function NotesApp() {
     { value: "Doing", label: "Doing" },
     { value: "Done", label: "Done" },
   ];
+
   const [note, setNote] = useState<Note[]>(() => {
     const localData = localStorage.getItem('notes');
     return localData ? JSON.parse(localData) : []
   });
   const [noteTitle, setNoteTitle] = useState("");
-  const [noteStatus, setNoteStatus] = useState<Status>();
+  const [noteStatus, setNoteStatus] = useState<Status | null>(null);
   const [isNewNoteOpen, setIsNewNoteOpen] = useState(false);
   const [isEditNoteOpen, setIsEditNoteOpen] = useState(false);
   const [noteToEdit, setNoteToEdit] = useState<Note>({
     id: 0,
     title: '',
-    status: '',
+    status: { value: '', label: '' },
     createdAt: new Date(),
-  }) 
-  const [search, setSearch] = useState("")
+  });
+  const [search, setSearch] = useState("");
 
+  // Salvando as notas no localStorage quando houver alteração
   useEffect(() => {
-    localStorage.setItem('notes', JSON.stringify(note))
-  }, [note])
+    if (note.length > 0) {
+      localStorage.setItem('notes', JSON.stringify(note));
+    }
+  }, [note]);
 
+  // Função para editar uma nota
   const handleEditNote = (value: Note) => {
-    setNote(prevNotes => prevNotes.map(note => {
-      if (note.id === value.id && noteToEdit.status !== undefined) {
-        note.title = value.title
-        note.status = value.status.value
-      } else {
-        console.log("teste")
-      }
-      return note
-    }))
+    setNote(prevNotes => prevNotes.map(n => 
+      n.id === value.id ? { ...n, title: value.title, status: value.status } : n
+    ));
+    setIsEditNoteOpen(false);
+  };
 
-    setIsEditNoteOpen(false)
-  }
-
+  // Função para criar uma nova nota
   const handleCreateNewNote = (e: React.FormEvent) => {
     e.preventDefault();
-    if (noteTitle !== "" && noteStatus !== undefined) {
-      let randomId = Math.random();
-      setNote((prev) => [
-        ...prev,
-        {
-          id: randomId,
-          title: noteTitle,
-          status: noteStatus.label,
-          createdAt: new Date(),
-        },
-      ]);
-    } else {
-      alert("fill all the informations");
+    if (noteTitle.trim() === "" || !noteStatus) {
+      alert("Please fill in all the fields");
+      return;
     }
+    const newNote: Note = {
+      id: Date.now(), // Gerando ID único baseado no timestamp
+      title: noteTitle,
+      status: noteStatus,
+      createdAt: new Date(),
+    };
+    setNote((prev) => [...prev, newNote]);
     setNoteTitle("");
+    setNoteStatus(null);
     setIsNewNoteOpen(false);
-    setNoteStatus(undefined);
   };
 
+  // Função para excluir uma nota
   const handleDeleteNote = (id: number) => {
-    const filterNote = note.filter((n) => n.id !== id);
-    setNote([...filterNote]);
+    const filteredNotes = note.filter((n) => n.id !== id);
+    setNote(filteredNotes);
   };
 
-  const selectOnChange = (value: any) => {
+  // Atualiza o status da nova nota
+  const selectOnChange = (value: Status | null) => {
     setNoteStatus(value);
   };
 
-  const selectOnChangeEdit = (value: any) => {
-    setNoteToEdit({...noteToEdit, status: value})
-  }
+  // Atualiza o status na edição da nota
+  const selectOnChangeEdit = (value: Status | null) => {
+    setNoteToEdit({...noteToEdit, status: value as Status });
+  };
 
+  // Abre o modal para editar uma nota existente
   const handleOpenEditNote = (note: Note) => {
-    setIsEditNoteOpen(true)
-    setNoteToEdit(note)
-  }
+    setIsEditNoteOpen(true);
+    setNoteToEdit(note);
+  };
+
+  // Filtrando as notas de acordo com a busca
+  const filteredNotes = note.filter((n) => {
+    if (search === "") return n;
+    return n.title.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <Container>
+      {/* Modal para criar nova nota */}
       <Modal
         isOpen={isNewNoteOpen}
         onRequestClose={() => setIsNewNoteOpen(false)}
@@ -125,10 +133,13 @@ export function NotesApp() {
             options={options}
             placeholder="Status"
             onChange={selectOnChange}
+            value={noteStatus}
           />
           <button type="submit">Submit</button>
         </ModalNewNoteContainer>
       </Modal>
+
+      {/* Modal para editar nota */}
       <Modal
         isOpen={isEditNoteOpen}
         onRequestClose={() => setIsEditNoteOpen(false)}
@@ -142,18 +153,24 @@ export function NotesApp() {
         >
           <img src={closeImg} alt="Fechar modal" />
         </button>
-        <ModalEditContainer>          
+        <ModalEditContainer>
           <h2>Edit Note</h2>
-          <input placeholder={noteToEdit.title} defaultValue={noteToEdit.title} onChange={(e) => setNoteToEdit({...noteToEdit, title: e.target.value})} type="text"/>            
+          <input
+            type="text"
+            placeholder={noteToEdit.title}
+            value={noteToEdit.title}
+            onChange={(e) => setNoteToEdit({ ...noteToEdit, title: e.target.value })}
+          />
           <Select
             options={options}
-            placeholder={noteToEdit.status}
-            value={noteToEdit.status}
+            value={{ value: noteToEdit.status.value, label: noteToEdit.status.label }}
             onChange={selectOnChangeEdit}
           />
-          <button type="button" onClick={() => handleEditNote(noteToEdit)}>Edit</button>          
+          <button type="button" onClick={() => handleEditNote(noteToEdit)}>Edit</button>
         </ModalEditContainer>
       </Modal>
+
+      {/* Cabeçalho da aplicação */}
       <header>
         <div className="header-content">
           <div className="header-content--title">
@@ -182,11 +199,18 @@ export function NotesApp() {
             </div>
             <div className="search-notes">
               <VscSearch className="icon" />
-              <input type="text" placeholder="Type the title to search..." value={search} onChange={(e) => setSearch(e.target.value)} />
+              <input
+                type="text"
+                placeholder="Type the title to search..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
           </div>
         </div>
       </header>
+
+      {/* Lista de notas */}
       <main>
         <table>
           <thead>
@@ -197,42 +221,23 @@ export function NotesApp() {
             </tr>
           </thead>
           <tbody>
-            {note.filter((val) => {
-              if (search === "") {
-                return val
-              } else if (val.title.toLowerCase().includes(search.toLowerCase())) {
-                return val
-              }
-              return null
-            }).map((n) => {
-              return (
-                <tr key={n.id}>
-                  <td>{n.title}</td>
-                  <td>
-                    {new Intl.DateTimeFormat("pt-US", {}).format(
-                      new Date(n.createdAt)
-                    )}
-                  </td>
-                  <td>{n.status}</td>
-                  <td className="flex space-evenly">
-                    <span className="position-relative tooltip">
-                      <VscEdit 
-                        className="icon pointer" 
-                        onClick={() => handleOpenEditNote(n)} 
-                      />
+            {filteredNotes.map((n) => (
+              <tr key={n.id}>
+                <td>{n.title}</td>
+                <td>{new Intl.DateTimeFormat("pt-US", {}).format(new Date(n.createdAt))}</td>
+                <td>{n.status.label}</td>
+                <td className="flex space-evenly">
+                  <span className="position-relative tooltip">
+                    <VscEdit className="icon pointer" onClick={() => handleOpenEditNote(n)} />
                     <span className="tooltiptext">Edit</span>
-                    </span>
-                    <span className="position-relative tooltip">
-                      <VscChromeClose 
-                        className="icon pointer" 
-                        onClick={() => handleDeleteNote(n.id)}
-                      />
-                      <span className="tooltiptext">Delete</span>
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+                  </span>
+                  <span className="position-relative tooltip">
+                    <VscChromeClose className="icon pointer" onClick={() => handleDeleteNote(n.id)} />
+                    <span className="tooltiptext">Delete</span>
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </main>
