@@ -38,7 +38,7 @@ export function NotesApp() {
   const [noteToEdit, setNoteToEdit] = useState<Note>({
     id: 0,
     title: '',
-    status: { value: '', label: '' },
+    status: { value: 'To Do', label: 'To Do' },
     createdAt: new Date(),
   });
   const [search, setSearch] = useState("");
@@ -95,8 +95,11 @@ export function NotesApp() {
 
   // Abre o modal para editar uma nota existente
   const handleOpenEditNote = (note: Note) => {
-    setIsEditNoteOpen(true);
+    if (!note.status) {
+      note.status = { value: 'To Do', label: 'To Do' };
+    }
     setNoteToEdit(note);
+    setIsEditNoteOpen(true);
   };
 
   // Filtrando as notas de acordo com a busca
@@ -163,7 +166,7 @@ export function NotesApp() {
           />
           <Select
             options={options}
-            value={{ value: noteToEdit.status.value, label: noteToEdit.status.label }}
+            value={noteToEdit.status ? { value: noteToEdit.status.value, label: noteToEdit.status.label } : null}
             onChange={selectOnChangeEdit}
           />
           <button type="button" onClick={() => handleEditNote(noteToEdit)}>Edit</button>
